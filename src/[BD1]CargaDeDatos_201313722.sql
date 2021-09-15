@@ -88,7 +88,7 @@ select distinct empleado_activo as estado from temporal where empleado_activo is
 --PARA INSERTAR PELICULA -> 1,000
 -- ======================================================================================
 insert into Pelicula (titulo,descripcion,anolanzamiento,duracion,costoalquiler,costodano,tiempoalquiler,idclasificacion)
-select distinct temporal.nombre_pelicula, temporal.descripcion_pelicula, temporal.ano_lanzamiento,temporal.dias_renta, temporal.costo_renta,temporal.duracion,temporal.costo_por_dano, clasificacion.idClasificacion
+select distinct temporal.nombre_pelicula, temporal.descripcion_pelicula, temporal.ano_lanzamiento,temporal.duracion, temporal.costo_renta,temporal.costo_por_dano,temporal.dias_renta, clasificacion.idClasificacion
 from temporal
 inner join Clasificacion on clasificacion.descripcion = temporal.clasificacion
 where temporal.nombre_pelicula is not null and temporal.clasificacion is not null;
@@ -171,19 +171,18 @@ inner join pais on pais.idpais = ciudad.idpais
 where temporal.nombre_cliente is not null and pais.pais = temporal.pais_cliente and ciudad.ciudad = temporal.ciudad_cliente;
 
 -- ======================================================================================
---PARA INSERTAR ALQUILER -> 16,044
+--PARA INSERTAR ALQUILER -> 16,045
 -- ======================================================================================
-select * from temporal;
-insert into alquiler(monto,fechapago,fecharenta,fechadevolucion,idtienda,idcliente)
-select distinct temporal.monto_a_pagar,temporal.fecha_pago,temporal.fecha_renta, temporal.fecha_retorno,tienda.idtienda as tienda,cliente.idcliente as client from temporal
-inner join cliente on cliente.nombre ||' '||cliente.apellido = temporal.nombre_cliente
-inner join tienda on tienda.nombre = temporal.tienda_preferida
-where temporal.fecha_renta is not null and temporal.monto_a_pagar is not null;
+insert into alquiler(monto,fechapago,fecharenta,fechadevolucion,idtienda,idcliente,idempleado,idpelicula)
+select distinct temporal.monto_a_pagar,temporal.fecha_pago,temporal.fecha_renta,temporal.fecha_retorno,tienda.idtienda,cliente.idcliente,empleado.idempleado,pelicula.idpelicula from temporal
+inner join tienda on temporal.nombre_tienda = tienda.nombre
+inner join cliente on temporal.nombre_cliente = cliente.nombre||' '||cliente.apellido
+inner join empleado on temporal.nombre_empleado = empleado.nombre||' '||empleado.apellido
+inner join pelicula on temporal.nombre_pelicula = pelicula.titulo
+;
 
--- ======================================================================================
---PARA INSERTAR PELICULA_ALQUILER -> 52,103
--- ======================================================================================
-select distinct pelicula.idpelicula,alquiler.idalquiler from temporal
-inner join pelicula on pelicula.titulo = temporal.nombre_pelicula
-inner join alquiler on alquiler.fecharenta = temporal.fecha_renta;
+
+
+
+
 

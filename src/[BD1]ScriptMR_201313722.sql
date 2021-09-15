@@ -18,7 +18,6 @@ DROP TABLE Categoria_Pelicula CASCADE CONSTRAINTS;
 DROP TABLE Pelicula_Actor CASCADE CONSTRAINTS;
 DROP TABLE Lenguaje_Pelicula CASCADE CONSTRAINTS;
 DROP TABLE Alquiler CASCADE CONSTRAINTS;
-DROP TABLE Pelicula_Alquiler CASCADE CONSTRAINTS;
 DROP TABLE Inventario CASCADE CONSTRAINTS;
 
 -- ======================================================================================
@@ -128,8 +127,8 @@ ALTER TABLE Ciudad
 -- ======================================================================================
 CREATE TABLE Direccion(
     idDireccion INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
-    direccion VARCHAR2(100) NOT NULL,
-    codigoPostal INTEGER NOT NULL,
+    direccion VARCHAR2(100),
+    codigoPostal INTEGER,
     idCiudad  INTEGER NOT NULL
 );
 
@@ -142,32 +141,7 @@ ALTER TABLE Direccion
         FOREIGN KEY (idCiudad)
             REFERENCES Ciudad(idCiudad) ON DELETE CASCADE;
 
--- ======================================================================================
--- Creando Tabla Cliente
--- ======================================================================================
-CREATE TABLE Cliente(
-    idCliente INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
-    nombre VARCHAR2(40) NOT NULL,
-    apellido VARCHAR2(40) NOT NULL,
-    correoElectronico VARCHAR2(80) NOT NULL,
-    fechaRegistro TIMESTAMP,  
-    idEstado INTEGER NOT NULL,
-    idDireccion INTEGER NOT NULL
-);
 
-ALTER TABLE Cliente 
-    ADD CONSTRAINT PK_Cliente
-        PRIMARY KEY(idCliente);
-
-ALTER TABLE Cliente
-    ADD CONSTRAINT FK_Estado_Cliente
-        FOREIGN KEY (idEstado)
-            REFERENCES Estado(idEstado) ON DELETE CASCADE;
-
-ALTER TABLE Cliente
-    ADD CONSTRAINT FK_Direccion_Cliente
-        FOREIGN KEY (idDireccion)
-            REFERENCES Direccion(idDireccion) ON DELETE CASCADE;
 
 -- ======================================================================================
 -- Creando Tabla Tienda
@@ -186,6 +160,39 @@ ALTER TABLE Tienda
     ADD CONSTRAINT FK_Direccion_Tienda
         FOREIGN KEY (idDireccion)
             REFERENCES Direccion(idDireccion) ON DELETE CASCADE;
+
+-- ======================================================================================
+-- Creando Tabla Cliente
+-- ======================================================================================
+CREATE TABLE Cliente(
+    idCliente INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+    nombre VARCHAR2(40) NOT NULL,
+    apellido VARCHAR2(40) NOT NULL,
+    correoElectronico VARCHAR2(80) NOT NULL,
+    fechaRegistro TIMESTAMP,  
+    idEstado INTEGER NOT NULL,
+    idDireccion INTEGER NOT NULL,
+    idTienda INTEGER NOT NULL
+);
+
+ALTER TABLE Cliente 
+    ADD CONSTRAINT PK_Cliente
+        PRIMARY KEY(idCliente);
+
+ALTER TABLE Cliente
+    ADD CONSTRAINT FK_Estado_Cliente
+        FOREIGN KEY (idEstado)
+            REFERENCES Estado(idEstado) ON DELETE CASCADE;
+
+ALTER TABLE Cliente
+    ADD CONSTRAINT FK_Direccion_Cliente
+        FOREIGN KEY (idDireccion)
+            REFERENCES Direccion(idDireccion) ON DELETE CASCADE;
+            
+ALTER TABLE Cliente
+    ADD CONSTRAINT FK_Tienda_Cliente
+        FOREIGN KEY (idTienda)
+            REFERENCES Tienda(idTienda) ON DELETE CASCADE;
 
 -- ======================================================================================
 -- Creando Tabla Empleado
@@ -323,9 +330,11 @@ CREATE TABLE Alquiler(
     monto   NUMBER(10,2) NOT NULL,
     fechaPago   TIMESTAMP NOT NULL,
     fechaRenta  TIMESTAMP NOT NULL,
-    fechaDevolucion TIMESTAMP NOT NULL,
+    fechaDevolucion TIMESTAMP,
     idTienda    INTEGER NOT NULL,
-    idCliente   INTEGER NOT NULL
+    idCliente   INTEGER NOT NULL,
+    idEmpleado  INTEGER NOT NULL,
+    idPelicula  INTEGER NOT NULL
 );
 
 ALTER TABLE Alquiler 
@@ -342,27 +351,16 @@ ALTER TABLE Alquiler
         FOREIGN KEY (idCliente)
             REFERENCES Cliente(idCliente) ON DELETE CASCADE;
 
--- ======================================================================================
--- Creando Tabla Pelicula_Alquiler
--- ======================================================================================
-CREATE TABLE Pelicula_Alquiler(
-    idAlquiler INTEGER NOT NULL,
-    idPelicula  INTEGER NOT NULL
-);
+ALTER TABLE Alquiler
+    ADD CONSTRAINT FK_Alquiler_Empleado
+        FOREIGN KEY (idEmpleado)
+            REFERENCES Empleado(idEmpleado) ON DELETE CASCADE;
 
-ALTER TABLE Pelicula_Alquiler 
-    ADD CONSTRAINT PK_Pelicula_Alquiler
-        PRIMARY KEY(idAlquiler,idPelicula);
-
-ALTER TABLE Pelicula_Alquiler
-    ADD CONSTRAINT FK_Pelicula_Alquiler_Alquiler
-        FOREIGN KEY (idAlquiler)
-            REFERENCES Alquiler(idAlquiler) ON DELETE CASCADE;
-
-ALTER TABLE Pelicula_Alquiler
-    ADD CONSTRAINT FK_Pelicula_Alquiler_Pelicula
+ALTER TABLE Alquiler
+    ADD CONSTRAINT FK_Alquiler_Pelicula
         FOREIGN KEY (idPelicula)
             REFERENCES Pelicula(idPelicula) ON DELETE CASCADE;
+
 
  -- ======================================================================================
 -- Creando Tabla Inventario
