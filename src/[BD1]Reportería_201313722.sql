@@ -323,3 +323,94 @@ inner join(
 where sub1.total > sub2.total
 order by sub1.city
 ;
+
+-- ======================================================================================
+-- Consulta 18 -> 2,904
+-- ======================================================================================
+--Mostrar el nombre, apellido y fecha de retorno de película a la tienda de todos
+--los clientes que hayan rentado más de 2 películas que se encuentren en
+--lenguaje Inglés en donde el empleado que se las vendió ganará más de 15
+--dólares en sus rentas del día en la que el cliente rentó la película.
+select cliente.nombre,cliente.apellido,trunc(alquiler.fechadevolucion) from alquiler
+inner join cliente on cliente.idcliente = alquiler.idcliente
+inner join(
+    select empleado.idempleado as idemp,trunc(alquiler.fecharenta)as frenta from alquiler
+    inner join empleado on alquiler.idempleado = empleado.idempleado
+    group by empleado.idempleado,trunc(alquiler.fecharenta)
+    having sum(alquiler.monto) > 15
+)sub1 on sub1.idemp = alquiler.idempleado and sub1.frenta = trunc(alquiler.fecharenta)
+inner join(
+    select  cliente.idcliente as client,trunc(alquiler.fecharenta) as frenta from alquiler
+    inner join cliente on alquiler.idcliente = cliente.idcliente
+    inner join pelicula on alquiler.idpelicula = pelicula.idpelicula
+    inner join lenguaje_pelicula on pelicula.idpelicula = lenguaje_pelicula.idpelicula
+    inner join lenguaje on lenguaje_pelicula.idlenguaje = lenguaje.idlenguaje
+    where lenguaje.descripcion like '%English%'
+    group by cliente.idcliente,trunc(alquiler.fecharenta)
+    having count(alquiler.idcliente) > 2
+)sub2 on sub2.client = alquiler.idcliente and sub2.frenta = trunc(alquiler.fecharenta)
+group by cliente.nombre,cliente.apellido,trunc(alquiler.fechadevolucion)
+;
+-- ======================================================================================
+-- Consulta 19 -> 372
+-- ======================================================================================
+--Mostrar el número de mes, de la fecha de renta de la película, nombre y
+--apellido de los clientes que más películas han rentado y las que menos en
+--una sola consulta.
+select sub2.mes,cliente.nombre,cliente.apellido,sub2.tot as total from(
+    select  EXTRACT(MONTH FROM alquiler.fecharenta) as mes,cliente.idcliente as id, count(alquiler.idcliente) as tot from alquiler
+    inner join cliente on alquiler.idcliente = cliente.idcliente
+    group by cliente.idcliente, EXTRACT(MONTH FROM alquiler.fecharenta)
+)sub2
+inner join(
+    select sub1.mes as months,max(sub1.tot) as total from alquiler 
+    inner join(
+        select  EXTRACT(MONTH FROM alquiler.fecharenta) as mes,cliente.idcliente as id, count(alquiler.idcliente) as tot from alquiler
+        inner join cliente on alquiler.idcliente = cliente.idcliente
+        group by cliente.idcliente, EXTRACT(MONTH FROM alquiler.fecharenta)
+    )sub1 on alquiler.idcliente = sub1.id
+    group by sub1.mes
+)sub3 on sub2.mes = sub3.months and sub2.tot = sub3.total 
+inner join cliente on sub2.id = cliente.idcliente
+union all
+select sub2.mes,cliente.nombre,cliente.apellido,sub2.tot from(
+    select  EXTRACT(MONTH FROM alquiler.fecharenta) as mes,cliente.idcliente as id, count(alquiler.idcliente) as tot from alquiler
+    inner join cliente on alquiler.idcliente = cliente.idcliente
+    group by cliente.idcliente, EXTRACT(MONTH FROM alquiler.fecharenta)
+)sub2
+inner join(
+    select sub1.mes as months,min(sub1.tot) as total from alquiler 
+    inner join(
+        select  EXTRACT(MONTH FROM alquiler.fecharenta) as mes,cliente.idcliente as id, count(alquiler.idcliente) as tot from alquiler
+        inner join cliente on alquiler.idcliente = cliente.idcliente
+        group by cliente.idcliente, EXTRACT(MONTH FROM alquiler.fecharenta)
+    )sub1 on alquiler.idcliente = sub1.id
+    group by sub1.mes
+)sub3 on sub2.mes = sub3.months and sub2.tot = sub3.total 
+inner join cliente on sub2.id = cliente.idcliente
+;
+
+
+-- ======================================================================================
+-- Consulta 20
+-- ======================================================================================
+--Mostrar el porcentaje de lenguajes de películas más rentadas de cada ciudad
+--durante el mes de julio del año 2005 de la siguiente manera: ciudad,
+--lenguaje, porcentaje de renta.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
