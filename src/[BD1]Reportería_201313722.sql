@@ -50,16 +50,24 @@ order by actor.nombre
 ;
 
 -- ======================================================================================
--- Consulta 5 -> 55
+-- Consulta 5 -> 80
 -- ======================================================================================
 --Mostrar el apellido de todos los actores y la cantidad de actores que tienen
 --ese apellido pero solo para los que comparten el mismo nombre por lo menos
 --con dos actores.
-select apellido,cantidad from(
-select actor.apellido as apellido, count(actor.apellido) as cantidad from actor
-group by actor.apellido)
-where cantidad >= 2
+select sub1.lastname,sub1.total from actor
+inner join (
+    select actor.apellido as lastname, count(actor.apellido) as total from actor
+    group by actor.apellido
+)sub1 on actor.apellido = sub1.lastname 
+inner join (
+    select actor.nombre as name, count(actor.nombre) as total from actor
+    group by actor.nombre
+    having count(actor.nombre) >= 2
+)sub2 on actor.nombre = sub2.name 
+group by sub1.lastname,sub1.total
 ;
+
 
 -- ======================================================================================
 -- Consulta 6 -> 58
@@ -180,10 +188,10 @@ inner join pais on pais.idpais =  sub2.pa
 -- ======================================================================================
 -- Consulta 13 -> 113
 -- ======================================================================================
---Mostrar el nombre del país, nombre del cliente y número de películas
---rentadas de todos los clientes que rentaron más películas por país. Si el
---número de películas máximo se repite, mostrar todos los valores que
---representa el máximo.
+--Mostrar el nombre del paï¿½s, nombre del cliente y nï¿½mero de pelï¿½culas
+--rentadas de todos los clientes que rentaron mï¿½s pelï¿½culas por paï¿½s. Si el
+--nï¿½mero de pelï¿½culas mï¿½ximo se repite, mostrar todos los valores que
+--representa el mï¿½ximo.
 select sub1.pa as pais,sub1.nomb as nombre,sub1.tot as alquiler from(
     select pais.pais as pa,cliente.nombre||' '||cliente.apellido as nomb ,count(alquiler.idcliente)as tot from alquiler
     inner join cliente on cliente.idcliente = alquiler.idcliente
@@ -211,9 +219,9 @@ inner join (
 -- ======================================================================================
 -- Consulta 14 -> 256
 -- ======================================================================================
---Mostrar todas las ciudades por país en las que predomina la renta de
---películas de la categoría “Horror”. Es decir, hay más rentas que las otras
---categorías.
+--Mostrar todas las ciudades por paï¿½s en las que predomina la renta de
+--pelï¿½culas de la categorï¿½a ï¿½Horrorï¿½. Es decir, hay mï¿½s rentas que las otras
+--categorï¿½as.
 select sub3.pais as pai,sub3.ci as ciud from(
     select categoria.descripcion as cat,pais.pais as pais,ciudad.ciudad as ci,count(alquiler.idalquiler) as tot from alquiler
     inner join pelicula on pelicula.idpelicula = alquiler.idpelicula
@@ -245,9 +253,9 @@ group by sub3.pais,sub3.ci
 -- ======================================================================================
 -- Consulta 15 -> 108
 -- ======================================================================================
---Mostrar el nombre del país, la ciudad y el promedio de rentas por ciudad. Por
---ejemplo: si el país tiene 3 ciudades, se deben sumar todas las rentas de la
---ciudad y dividirlo dentro de tres (número de ciudades del país).
+--Mostrar el nombre del paï¿½s, la ciudad y el promedio de rentas por ciudad. Por
+--ejemplo: si el paï¿½s tiene 3 ciudades, se deben sumar todas las rentas de la
+--ciudad y dividirlo dentro de tres (nï¿½mero de ciudades del paï¿½s).
 select sub2.country,round((sub3.suma/sub2.tot),2)as promedio from(
     select pais.pais as country,count(ciudad.idciudad) as tot from pais
     inner join ciudad on pais.idpais = ciudad.idpais
@@ -268,8 +276,8 @@ inner join(
 -- ======================================================================================
 -- Consulta 16 -> 101
 -- ======================================================================================
---Mostrar el nombre del país y el porcentaje de rentas de películas de la
---categoría “Sports”.
+--Mostrar el nombre del paï¿½s y el porcentaje de rentas de pelï¿½culas de la
+--categorï¿½a ï¿½Sportsï¿½.
 select sub2.country as pais,round((sub2.tot/sub3.suma),2) * 100 as porcentaje from(
     select pais.pais as country,count(alquiler.idcliente)as tot from alquiler
     inner join cliente on cliente.idcliente = alquiler.idcliente
@@ -298,9 +306,9 @@ order by pais;
 -- ======================================================================================
 -- Consulta 17 -> 20
 -- ======================================================================================
---Mostrar la lista de ciudades de Estados Unidos y el número de rentas de
---películas para las ciudades que obtuvieron más rentas que la ciudad
---“Dayton”.
+--Mostrar la lista de ciudades de Estados Unidos y el nï¿½mero de rentas de
+--pelï¿½culas para las ciudades que obtuvieron mï¿½s rentas que la ciudad
+--ï¿½Daytonï¿½.
 
 select sub1.city,sub1.total from(
     select pais.pais as country,ciudad.ciudad as city,count(alquiler.idalquiler) as total from alquiler
@@ -325,20 +333,21 @@ order by sub1.city
 ;
 
 -- ======================================================================================
--- Consulta 18 -> 2,904
+-- Consulta 18 -> 383
 -- ======================================================================================
---Mostrar el nombre, apellido y fecha de retorno de película a la tienda de todos
---los clientes que hayan rentado más de 2 películas que se encuentren en
---lenguaje Inglés en donde el empleado que se las vendió ganará más de 15
---dólares en sus rentas del día en la que el cliente rentó la película.
+--Mostrar el nombre, apellido y fecha de retorno de pelï¿½cula a la tienda de todos
+--los clientes que hayan rentado mï¿½s de 2 pelï¿½culas que se encuentren en
+--lenguaje Inglï¿½s en donde el empleado que se las vendiï¿½ ganarï¿½ mï¿½s de 15
+--dï¿½lares en sus rentas del dï¿½a en la que el cliente rentï¿½ la pelï¿½cula.
 select cliente.nombre,cliente.apellido,trunc(alquiler.fechadevolucion) from alquiler
 inner join cliente on cliente.idcliente = alquiler.idcliente
 inner join(
-    select empleado.idempleado as idemp,trunc(alquiler.fecharenta)as frenta from alquiler
+    select empleado.idempleado as idemp,cliente.idcliente as idcl,trunc(alquiler.fecharenta)as frenta from alquiler
     inner join empleado on alquiler.idempleado = empleado.idempleado
-    group by empleado.idempleado,trunc(alquiler.fecharenta)
+    inner join cliente on alquiler.idcliente = cliente.idcliente
+    group by empleado.idempleado,cliente.idcliente,trunc(alquiler.fecharenta)
     having sum(alquiler.monto) > 15
-)sub1 on sub1.idemp = alquiler.idempleado and sub1.frenta = trunc(alquiler.fecharenta)
+)sub1 on sub1.idemp = alquiler.idempleado and sub1.frenta = trunc(alquiler.fecharenta) and sub1.idcl = cliente.idcliente
 inner join(
     select  cliente.idcliente as client,trunc(alquiler.fecharenta) as frenta from alquiler
     inner join cliente on alquiler.idcliente = cliente.idcliente
@@ -354,8 +363,8 @@ group by cliente.nombre,cliente.apellido,trunc(alquiler.fechadevolucion)
 -- ======================================================================================
 -- Consulta 19 -> 372
 -- ======================================================================================
---Mostrar el número de mes, de la fecha de renta de la película, nombre y
---apellido de los clientes que más películas han rentado y las que menos en
+--Mostrar el nï¿½mero de mes, de la fecha de renta de la pelï¿½cula, nombre y
+--apellido de los clientes que mï¿½s pelï¿½culas han rentado y las que menos en
 --una sola consulta.
 select sub2.mes,cliente.nombre,cliente.apellido,sub2.tot as total from(
     select  EXTRACT(MONTH FROM alquiler.fecharenta) as mes,cliente.idcliente as id, count(alquiler.idcliente) as tot from alquiler
@@ -394,16 +403,31 @@ inner join cliente on sub2.id = cliente.idcliente
 -- ======================================================================================
 -- Consulta 20
 -- ======================================================================================
---Mostrar el porcentaje de lenguajes de películas más rentadas de cada ciudad
---durante el mes de julio del año 2005 de la siguiente manera: ciudad,
+--Mostrar el porcentaje de lenguajes de pelï¿½culas mï¿½s rentadas de cada ciudad
+--durante el mes de julio del aï¿½o 2005 de la siguiente manera: ciudad,
 --lenguaje, porcentaje de renta.
+select * from alquiler;
+
+select ciudad.ciudad,lenguaje.descripcion,pelicula.titulo,count(alquiler.idpelicula) as alquileres from alquiler
+inner join pelicula on pelicula.idpelicula = alquiler.idpelicula
+inner join lenguaje_pelicula on lenguaje_pelicula.idpelicula = pelicula.idpelicula
+inner join lenguaje on lenguaje.idlenguaje = lenguaje_pelicula.idlenguaje
+inner join cliente on cliente.idcliente = alquiler.idcliente
+inner join direccion on direccion.iddireccion = cliente.iddireccion
+inner join ciudad on ciudad.idciudad = direccion.idciudad
+where extract(month from alquiler.fecharenta) = 06 and extract(year from alquiler.fecharenta) = 2005
+group by ciudad.ciudad,lenguaje.descripcion,pelicula.titulo
 
 
-
-
-
-
-
+select ciudad.idciudad,count(alquiler.idalquiler) as alquileres from alquiler
+inner join pelicula on pelicula.idpelicula = alquiler.idpelicula
+inner join lenguaje_pelicula on lenguaje_pelicula.idpelicula = pelicula.idpelicula
+inner join lenguaje on lenguaje.idlenguaje = lenguaje_pelicula.idlenguaje
+inner join cliente on cliente.idcliente = alquiler.idcliente
+inner join direccion on direccion.iddireccion = cliente.iddireccion
+inner join ciudad on ciudad.idciudad = direccion.idciudad
+where extract(month from alquiler.fecharenta) = 07 and extract(year from alquiler.fecharenta) = 2005
+group by ciudad.idciudad
 
 
 
